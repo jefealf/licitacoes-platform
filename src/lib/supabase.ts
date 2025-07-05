@@ -1,9 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Verificar se as variáveis de ambiente estão configuradas
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Variáveis de ambiente do Supabase não configuradas!');
+  console.error('Por favor, configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env');
+  console.error('Veja o arquivo env.example para mais detalhes');
+}
+
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
+
+// Log de conexão para debug
+console.log('🔗 Conectando ao Supabase:', {
+  url: supabaseUrl ? '✅ Configurado' : '❌ Não configurado',
+  key: supabaseAnonKey ? '✅ Configurado' : '❌ Não configurado'
+});
 
 // Tipos para TypeScript
 export interface User {

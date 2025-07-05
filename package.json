@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node check-env.js && vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check-env": "node check-env.js",
+    "setup": "node check-env.js && echo '✅ Ambiente configurado! Execute npm run dev para iniciar.'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",

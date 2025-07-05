@@ -40,16 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkCurrentUser = async () => {
     try {
       setIsLoading(true);
+      console.log('🔄 Verificando usuário atual...');
+      
       const { user: currentUser, error } = await AuthService.getCurrentUser();
       
       if (error) {
-        console.log('Usuário não autenticado:', error);
+        console.log('❌ Usuário não autenticado:', error);
         setUser(null);
       } else {
+        console.log('✅ Usuário autenticado:', currentUser?.name);
         setUser(currentUser);
       }
     } catch (error) {
-      console.error('Erro ao verificar usuário atual:', error);
+      console.error('❌ Erro ao verificar usuário atual:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -76,19 +79,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('🔄 Iniciando processo de login...');
 
       const { user: loggedUser, error } = await AuthService.login(email, password);
 
       if (error) {
+        console.error('❌ Erro no login:', error);
         setError(error);
         throw new Error(error);
       }
 
       if (loggedUser) {
+        console.log('✅ Login realizado com sucesso:', loggedUser.name);
         setUser(loggedUser);
       }
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('❌ Erro no login:', error);
       throw error;
     } finally {
       setIsLoading(false);

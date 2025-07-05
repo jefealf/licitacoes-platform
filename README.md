@@ -9,6 +9,59 @@ Uma plataforma SaaS moderna para monitoramento e análise de licitações públi
 - **Tailwind CSS** para estilização
 - **React Router** para navegação
 - **Lucide React** para ícones
+- **Supabase** para backend e autenticação
+
+## 🚀 Configuração Rápida
+
+### 1. **Configurar Supabase (Obrigatório)**
+
+Antes de executar o projeto, você precisa configurar o Supabase:
+
+1. **Crie uma conta** em [supabase.com](https://supabase.com)
+2. **Crie um novo projeto** no Supabase
+3. **Execute o script SQL** do arquivo `supabase-schema.sql` no SQL Editor
+4. **Execute também** o arquivo `fix-trigger.sql` para garantir que o trigger funcione
+5. **Copie as credenciais** em Settings > API:
+   - Project URL
+   - anon public key
+
+### 2. **Configurar Variáveis de Ambiente**
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anonima
+```
+
+### 3. **Instalar e Executar**
+
+```bash
+# Instalar dependências
+npm install
+
+# Verificar configuração
+npm run check-env
+
+# Executar em desenvolvimento
+npm run dev
+```
+
+## 📋 Guia Completo de Configuração
+
+Para instruções detalhadas, veja:
+- [SETUP_SUPABASE.md](./SETUP_SUPABASE.md) - Guia completo do Supabase
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Documentação original
+
+## 🔍 Verificação
+
+Após a configuração, você verá no console:
+
+```
+🔗 Conectando ao Supabase: { url: "✅ Configurado", key: "✅ Configurado" }
+```
+
+E na página inicial (em desenvolvimento) haverá uma seção de teste da conexão.
 
 ## 🚀 Deploy - Opções Gratuitas
 
@@ -19,7 +72,9 @@ Uma plataforma SaaS moderna para monitoramento e análise de licitações públi
 2. Faça login com GitHub/GitLab/Bitbucket
 3. Clique em "New Project"
 4. Importe este repositório
-5. Vercel detectará automaticamente que é um projeto Vite
+5. **Configure as variáveis de ambiente** em Settings > Environment Variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
 6. Clique em "Deploy"
 
 **Vantagens:**
@@ -39,129 +94,59 @@ Uma plataforma SaaS moderna para monitoramento e análise de licitações públi
 5. Configure:
    - Build command: `npm run build`
    - Publish directory: `dist`
-6. Clique em "Deploy site"
+6. **Configure as variáveis de ambiente** em Site settings > Environment variables
+7. Clique em "Deploy site"
 
-### 3. **GitHub Pages**
-
-**Passos:**
-1. Adicione ao `package.json`:
-```json
-{
-  "homepage": "https://seuusuario.github.io/seurepositorio",
-  "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  }
-}
-```
-
-2. Instale: `npm install --save-dev gh-pages`
-3. Execute: `npm run deploy`
-
-### 4. **Firebase Hosting**
-
-**Passos:**
-1. Instale Firebase CLI: `npm install -g firebase-tools`
-2. Login: `firebase login`
-3. Inicialize: `firebase init hosting`
-4. Build: `npm run build`
-5. Deploy: `firebase deploy`
-
-## 📦 Build Local
+## 🛠️ Scripts Disponíveis
 
 ```bash
-# Instalar dependências
-npm install
-
-# Build para produção
-npm run build
-
-# Preview do build
-npm run preview
+npm run dev          # Executar em desenvolvimento (com verificação de env)
+npm run build        # Build para produção
+npm run preview      # Preview do build
+npm run lint         # Executar linter
+npm run check-env    # Verificar configuração do ambiente
+npm run setup        # Verificar setup completo
 ```
 
-## 🔧 Configurações
+## 🔧 Solução de Problemas
 
-### Variáveis de Ambiente
-Crie um arquivo `.env` na raiz:
+### Erro: "Variáveis de ambiente não configuradas"
+- **Solução:** Crie o arquivo `.env` com as credenciais corretas do Supabase
 
-```env
-VITE_APP_TITLE=LicitaInteligente
-VITE_API_URL=https://api.seudominio.com
-```
+### Erro: "Perfil de usuário não encontrado"
+- **Solução:** Execute o script `fix-trigger.sql` no Supabase
 
-### Configuração do Vite
-O projeto já está configurado para:
-- ✅ Build otimizado
-- ✅ Code splitting
-- ✅ Minificação
-- ✅ Service Worker (se necessário)
+### Erro: "Invalid API key"
+- **Solução:** Verifique se a chave anônima está correta
 
-## 🌐 Domínios Personalizados
+### Erro: "Connection failed"
+- **Solução:** Verifique se a URL do projeto está correta
 
-### Vercel
-1. Vá em Settings > Domains
-2. Adicione seu domínio
-3. Configure DNS conforme instruções
+## 📊 Estrutura do Banco
 
-### Netlify
-1. Vá em Site settings > Domain management
-2. Adicione custom domain
-3. Configure DNS
+Após a configuração, você terá:
 
-## 📱 PWA (Progressive Web App)
-
-Para transformar em PWA, adicione ao `vite.config.ts`:
-
-```typescript
-import { VitePWA } from 'vite-plugin-pwa'
-
-export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      }
-    })
-  ]
-})
-```
+- ✅ **Tabela `users`** - Perfis dos usuários
+- ✅ **Tabela `companies`** - Dados das empresas
+- ✅ **Tabela `login_attempts`** - Logs de tentativas de login
+- ✅ **Trigger automático** - Cria perfil ao registrar
+- ✅ **Políticas de segurança** - RLS habilitado
 
 ## 🔒 Segurança
 
-- ✅ HTTPS automático
-- ✅ Headers de segurança
-- ✅ CSP configurado
-- ✅ Rate limiting (se necessário)
-
-## 📊 Monitoramento
-
-### Vercel Analytics
-Adicione ao `index.html`:
-```html
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
-```
-
-## 🚀 Performance
-
-O projeto está otimizado para:
-- ✅ Lighthouse Score > 90
-- ✅ Core Web Vitals
-- ✅ Lazy loading
-- ✅ Image optimization
+- ✅ **Row Level Security (RLS)** habilitado
+- ✅ **Autenticação** via Supabase Auth
+- ✅ **Políticas de acesso** por usuário
+- ✅ **Logs** de tentativas de login
+- ✅ **HTTPS** automático em produção
 
 ## 📞 Suporte
 
-Para dúvidas sobre deploy:
-- [Vercel Docs](https://vercel.com/docs)
-- [Netlify Docs](https://docs.netlify.com)
-- [Firebase Docs](https://firebase.google.com/docs/hosting)
+Para dúvidas sobre:
+- **Supabase:** [supabase.com/docs](https://supabase.com/docs)
+- **Deploy:** [vercel.com/docs](https://vercel.com/docs)
+- **Configuração:** Veja os arquivos `SETUP_SUPABASE.md` e `SUPABASE_SETUP.md`
 
 ---
 
-**🎯 Recomendação:** Use **Vercel** para o melhor desempenho e facilidade de uso! 
+**🎯 Recomendação:** Configure o Supabase primeiro, depois use **Vercel** para deploy! 
