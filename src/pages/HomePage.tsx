@@ -2,10 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Brain, Bell, BarChart3, Clock, Shield, CheckCircle, ArrowRight, Users, Target, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/FirebaseAuthContext';
-import SupabaseTest from '../components/SupabaseTest';
-import { LoginTest } from '../components/LoginTest';
-import { RegisterTest } from '../components/RegisterTest';
-import GoogleOAuthDebug from '../components/GoogleOAuthDebug';
+
 
 export function HomePage() {
   const { user } = useAuth();
@@ -238,73 +235,9 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Supabase Test Section - Apenas em desenvolvimento */}
-      {import.meta.env.DEV && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                🔧 Teste de Conexão - Supabase
-              </h2>
-              <p className="text-gray-600">
-                Verificando se a conexão com o banco de dados está funcionando corretamente.
-              </p>
-            </div>
-            <SupabaseTest />
-          </div>
-        </section>
-      )}
 
-      {/* Login Test Section - Apenas em desenvolvimento */}
-      {import.meta.env.DEV && (
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                🔐 Teste de Login - Debug
-              </h2>
-              <p className="text-gray-600">
-                Teste o login com suas credenciais para identificar problemas.
-              </p>
-            </div>
-            <LoginTest />
-          </div>
-        </section>
-      )}
 
-      {/* Register Test Section - Apenas em desenvolvimento */}
-      {import.meta.env.DEV && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                📝 Teste de Registro - Debug
-              </h2>
-              <p className="text-gray-600">
-                Teste o registro de novos usuários para identificar problemas.
-              </p>
-            </div>
-            <RegisterTest />
-          </div>
-        </section>
-      )}
 
-      {/* Google OAuth Debug Section - Apenas em desenvolvimento */}
-      {import.meta.env.DEV && (
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                🔐 Debug Google OAuth
-              </h2>
-              <p className="text-gray-600">
-                Verifique as configurações do Google OAuth para resolver problemas de redirecionamento.
-              </p>
-            </div>
-            <GoogleOAuthDebug />
-          </div>
-        </section>
-      )}
 
       {/* CTA Section */}
       {!user && (

@@ -16,10 +16,13 @@ const LoginPage: React.FC = () => {
     try {
       const result = await loginWithGoogle();
       
-      if (result.success) {
-        setMessage({ type: 'success', text: result.message });
-        // O redirecionamento será feito automaticamente pelo Supabase
-      } else {
+              if (result.success) {
+          setMessage({ type: 'success', text: result.message });
+          // Redirecionar para o dashboard após login bem-sucedido
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1000);
+        } else {
         setMessage({ type: 'error', text: result.message });
       }
     } catch (error) {

@@ -83,21 +83,21 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 2. **Substitua as regras por**:
 
 ```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Usuários podem ler/escrever apenas seus próprios dados
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    rules_version = '2';
+    service cloud.firestore {
+    match /databases/{database}/documents {
+        // Usuários podem ler/escrever apenas seus próprios dados
+        match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+        
+        // Usuários podem ler/escrever apenas suas próprias empresas
+        match /companies/{companyId} {
+        allow read, write: if request.auth != null && 
+            request.auth.uid == resource.data.user_id;
+        }
     }
-    
-    // Usuários podem ler/escrever apenas suas próprias empresas
-    match /companies/{companyId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == resource.data.user_id;
     }
-  }
-}
 ```
 
 3. **Clique em "Publicar"**

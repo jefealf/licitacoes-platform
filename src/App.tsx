@@ -13,7 +13,6 @@ import { PricingPage } from './pages/PricingPage';
 import { ProfilePage } from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import AuthCallbackPage from './pages/AuthCallbackPage';
 import { AuthProvider } from './contexts/FirebaseAuthContext';
 
 function App() {
@@ -29,7 +28,6 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               
               {/* Rotas protegidas */}
               <Route 
