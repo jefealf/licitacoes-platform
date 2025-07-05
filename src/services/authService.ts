@@ -33,7 +33,7 @@ export class AuthService {
         if (error.message.includes('Invalid login credentials')) {
           errorMessage = 'Senha incorreta. Verifique suas credenciais.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+          errorMessage = 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.';
         } else if (error.message.includes('Too many requests')) {
           errorMessage = 'Muitas tentativas de login. Tente novamente em alguns minutos.';
         }
@@ -42,7 +42,19 @@ export class AuthService {
       }
 
       if (data.user) {
-        console.log('✅ Usuário autenticado, buscando perfil...');
+        console.log('✅ Usuário autenticado, verificando confirmação de email...');
+        
+        // Verificar se o email foi confirmado
+        if (!data.user.email_confirmed_at) {
+          console.log('❌ Email não confirmado');
+          await this.logLoginAttempt(email, false);
+          return { 
+            user: null, 
+            error: 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação antes de fazer login.' 
+          };
+        }
+        
+        console.log('✅ Email confirmado, buscando perfil...');
         
         // Buscar dados completos do usuário
         const { data: userData, error: userError } = await supabase
@@ -103,6 +115,13 @@ export class AuthService {
     try {
       console.log('📝 Tentando registrar usuário:', email);
       
+      // Determinar a URL base correta
+      const baseUrl = import.meta.env.PROD 
+        ? window.location.origin 
+        : 'http://localhost:5173';
+      
+      console.log('🌐 URL base para redirecionamento:', baseUrl);
+      
       // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -111,6 +130,7 @@ export class AuthService {
           data: {
             name,
           },
+          emailRedirectTo: `${baseUrl}/auth/callback`,
         },
       });
 
@@ -122,6 +142,16 @@ export class AuthService {
       if (data.user) {
         console.log('✅ Usuário criado no auth, aguardando trigger...');
         console.log('🆔 ID do usuário:', data.user.id);
+        console.log('📧 Email confirmado:', data.user.email_confirmed_at);
+        
+        // Se o email não foi confirmado, informar o usuário
+        if (!data.user.email_confirmed_at) {
+          console.log('📧 Email de confirmação enviado');
+          return { 
+            user: null, 
+            error: 'Email de confirmação enviado. Verifique sua caixa de entrada e clique no link para confirmar sua conta.' 
+          };
+        }
         
         // Aguardar um pouco para o trigger criar o perfil
         await new Promise(resolve => setTimeout(resolve, 3000));
