@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Brain, Bell, BarChart3, Clock, Shield, CheckCircle, ArrowRight, Users, Target, Zap } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 import SupabaseTest from '../components/SupabaseTest';
 import { LoginTest } from '../components/LoginTest';
 import { RegisterTest } from '../components/RegisterTest';

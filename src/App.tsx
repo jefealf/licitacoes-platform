@@ -14,7 +14,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/FirebaseAuthContext';
 
 function App() {
   return (

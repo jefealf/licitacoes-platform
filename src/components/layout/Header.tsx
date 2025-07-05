@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Bell, User, Menu, X, Zap } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/FirebaseAuthContext';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
