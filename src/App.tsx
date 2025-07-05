@@ -11,10 +11,9 @@ import { AlertsPage } from './pages/AlertsPage';
 import { ContentHubPage } from './pages/ContentHubPage';
 import { PricingPage } from './pages/PricingPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
@@ -28,7 +27,6 @@ function App() {
               {/* Rotas públicas */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />

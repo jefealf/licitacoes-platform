@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Brain, Bell, BarChart3, Clock, Shield, CheckCircle, ArrowRight, Users, Target, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { SupabaseTest } from '../components/SupabaseTest';
+import SupabaseTest from '../components/SupabaseTest';
 import { LoginTest } from '../components/LoginTest';
 import { RegisterTest } from '../components/RegisterTest';
 
@@ -86,10 +86,10 @@ export function HomePage() {
               ) : (
                 <>
                   <Link
-                    to="/register"
+                    to="/login"
                     className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center space-x-2"
                   >
-                    <span>Começar Gratuitamente</span>
+                    <span>Entrar com Google</span>
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                   <Link
@@ -194,10 +194,10 @@ export function HomePage() {
               {!user && (
                 <div className="mt-8">
                   <Link
-                    to="/register"
+                    to="/login"
                     className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center space-x-2"
                   >
-                    <span>Começar Agora</span>
+                    <span>Entrar com Google</span>
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </div>

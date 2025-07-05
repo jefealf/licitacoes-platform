@@ -1,224 +1,185 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AuthService } from '../services/authService';
 import { User, Company } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
   company: Company | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  updateUser: (updates: Partial<User>) => Promise<void>;
-  saveCompany: (companyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+  loading: boolean;
+  loginWithGoogle: () => Promise<{ success: boolean; message: string }>;
+  logout: () => Promise<{ success: boolean; message: string }>;
+  saveCompany: (companyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => Promise<{ success: boolean; message: string }>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Verificar usuário atual na inicialização
-  useEffect(() => {
-    checkCurrentUser();
-  }, []);
+  // Carregar usuário inicial
+  const loadUser = async () => {
+    try {
+      console.log('🔄 Carregando usuário inicial...');
+      const result = await AuthService.getCurrentUser();
+      
+      if (result.success && result.user) {
+        console.log('✅ Usuário carregado:', result.user.name);
+        setUser(result.user);
+        
+        // Carregar dados da empresa se o usuário tem uma
+        if (result.user.has_company) {
+          await loadCompany(result.user.id);
+        }
+      } else {
+        console.log('❌ Nenhum usuário autenticado');
+        setUser(null);
+        setCompany(null);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar usuário:', error);
+      setUser(null);
+      setCompany(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Carregar dados da empresa quando usuário mudar
-  useEffect(() => {
-    if (user?.has_company) {
-      loadCompany();
-    } else {
+  // Carregar dados da empresa
+  const loadCompany = async (userId: string) => {
+    try {
+      const result = await AuthService.getCompany(userId);
+      if (result.success && result.company) {
+        console.log('✅ Empresa carregada:', result.company.corporate_name);
+        setCompany(result.company);
+      } else {
+        console.log('❌ Nenhuma empresa encontrada');
+        setCompany(null);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar empresa:', error);
       setCompany(null);
     }
-  }, [user]);
+  };
 
-  const checkCurrentUser = async () => {
+  // Login com Google
+  const loginWithGoogle = async () => {
     try {
-      setIsLoading(true);
-      console.log('🔄 Verificando usuário atual...');
+      setLoading(true);
+      console.log('🔄 Iniciando login com Google...');
       
-      const { user: currentUser, error } = await AuthService.getCurrentUser();
+      const result = await AuthService.loginWithGoogle();
       
-      if (error) {
-        console.log('❌ Usuário não autenticado:', error);
-        setUser(null);
+      if (result.success) {
+        console.log('✅ Login com Google iniciado');
+        return { success: true, message: result.message };
       } else {
-        console.log('✅ Usuário autenticado:', currentUser?.name);
-        setUser(currentUser);
+        console.log('❌ Login com Google falhou:', result.message);
+        return { success: false, message: result.message };
       }
     } catch (error) {
-      console.error('❌ Erro ao verificar usuário atual:', error);
-      setUser(null);
+      console.error('❌ Erro interno no login com Google:', error);
+      return { success: false, message: 'Erro interno do servidor' };
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const loadCompany = async () => {
-    if (!user) return;
-
-    try {
-      const { company: companyData, error } = await AuthService.getCompany(user.id);
-      
-      if (error) {
-        console.error('Erro ao carregar dados da empresa:', error);
-      } else {
-        setCompany(companyData);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar empresa:', error);
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      console.log('🔄 Iniciando processo de login...');
-
-      const { user: loggedUser, error } = await AuthService.login(email, password);
-
-      if (error) {
-        console.error('❌ Erro no login:', error);
-        setError(error);
-        throw new Error(error);
-      }
-
-      if (loggedUser) {
-        console.log('✅ Login realizado com sucesso:', loggedUser.name);
-        setUser(loggedUser);
-      }
-    } catch (error) {
-      console.error('❌ Erro no login:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Logout
   const logout = async () => {
     try {
-      setIsLoading(true);
-      const { error } = await AuthService.logout();
-
-      if (error) {
-        console.error('Erro no logout:', error);
+      setLoading(true);
+      console.log('🔄 Iniciando logout...');
+      
+      const result = await AuthService.logout();
+      
+      if (result.success) {
+        console.log('✅ Logout realizado com sucesso');
+        setUser(null);
+        setCompany(null);
+        return { success: true, message: result.message };
+      } else {
+        console.log('❌ Logout falhou:', result.message);
+        return { success: false, message: result.message };
       }
-
-      setUser(null);
-      setCompany(null);
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error('❌ Erro interno no logout:', error);
+      return { success: false, message: 'Erro interno do servidor' };
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { user: newUser, error } = await AuthService.register(name, email, password);
-
-      if (error) {
-        setError(error);
-        throw new Error(error);
-      }
-
-      if (newUser) {
-        setUser(newUser);
-      }
-    } catch (error) {
-      console.error('Erro no registro:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateUser = async (updates: Partial<User>) => {
-    if (!user) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { user: updatedUser, error } = await AuthService.updateUser(user.id, updates);
-
-      if (error) {
-        setError(error);
-        throw new Error(error);
-      }
-
-      if (updatedUser) {
-        setUser(updatedUser);
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Salvar empresa
   const saveCompany = async (companyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
-
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const { company: savedCompany, error } = await AuthService.saveCompany({
-        ...companyData,
-        user_id: user.id,
-      });
-
-      if (error) {
-        setError(error);
-        throw new Error(error);
+      if (!user) {
+        return { success: false, message: 'Usuário não autenticado' };
       }
 
-      if (savedCompany) {
-        setCompany(savedCompany);
+      console.log('🔄 Salvando empresa...');
+      const result = await AuthService.saveCompany(companyData);
+      
+      if (result.success && result.company) {
+        console.log('✅ Empresa salva com sucesso');
+        setCompany(result.company);
+        
         // Atualizar flag has_company no usuário
-        await updateUser({ has_company: true });
+        setUser(prev => prev ? { ...prev, has_company: true } : null);
+        
+        return { success: true, message: result.message };
+      } else {
+        console.log('❌ Erro ao salvar empresa:', result.message);
+        return { success: false, message: result.message };
       }
     } catch (error) {
-      console.error('Erro ao salvar empresa:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      console.error('❌ Erro interno ao salvar empresa:', error);
+      return { success: false, message: 'Erro interno do servidor' };
     }
+  };
+
+  // Atualizar dados do usuário
+  const refreshUser = async () => {
+    try {
+      console.log('🔄 Atualizando dados do usuário...');
+      await loadUser();
+    } catch (error) {
+      console.error('❌ Erro ao atualizar usuário:', error);
+    }
+  };
+
+  // Carregar usuário na inicialização
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const value: AuthContextType = {
+    user,
+    company,
+    loading,
+    loginWithGoogle,
+    logout,
+    saveCompany,
+    refreshUser
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      company,
-      login,
-      logout,
-      register,
-      updateUser,
-      saveCompany,
-      isAuthenticated: !!user,
-      isLoading,
-      error
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+};

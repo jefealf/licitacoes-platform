@@ -1,323 +1,138 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Zap, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-  general?: string;
-}
-
-export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSuccess, setIsSuccess] = useState(false);
+const LoginPage: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
-  const { login } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Recuperar email salvo se "lembrar de mim" estava ativo
-  useEffect(() => {
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-  }, []);
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setMessage(null);
 
-  // Limpar erros quando o usuário digita
-  useEffect(() => {
-    if (errors.email && email) {
-      setErrors(prev => ({ ...prev, email: undefined }));
-    }
-    if (errors.password && password) {
-      setErrors(prev => ({ ...prev, password: undefined }));
-    }
-    if (errors.general) {
-      setErrors(prev => ({ ...prev, general: undefined }));
-    }
-  }, [email, password, errors]);
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Validação de email
-    if (!email) {
-      newErrors.email = 'Email é obrigatório';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    // Validação de senha
-    if (!password) {
-      newErrors.password = 'Senha é obrigatória';
-    } else if (password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-    
     try {
-      await login(email, password);
+      const result = await loginWithGoogle();
       
-      // Salvar email se "lembrar de mim" estiver ativo
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message });
+        // O redirecionamento será feito automaticamente pelo Supabase
       } else {
-        localStorage.removeItem('rememberedEmail');
+        setMessage({ type: 'error', text: result.message });
       }
-
-      setIsSuccess(true);
-      
-      // Redirecionar após um breve delay para mostrar feedback visual
-      setTimeout(() => {
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
-      }, 1000);
-      
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      
-      // Tratar diferentes tipos de erro
-      if (error.message?.includes('credenciais')) {
-        setErrors({ general: 'Email ou senha incorretos' });
-      } else if (error.message?.includes('conexão')) {
-        setErrors({ general: 'Erro de conexão. Verifique sua internet.' });
-      } else {
-        setErrors({ general: 'Erro ao fazer login. Tente novamente.' });
-      }
+    } catch (error) {
+      console.error('Erro no login:', error);
+      setMessage({ type: 'error', text: 'Erro interno do servidor' });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
-
-  const handleDemoLogin = async () => {
-    setEmail('demo@licitainteligente.com');
-    setPassword('demo123');
-    setRememberMe(false);
-    
-    // Simular login automático após um breve delay
-    setTimeout(() => {
-      handleSubmit(new Event('submit') as any);
-    }, 500);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">LicitaInteligente</span>
-          </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Faça login na sua conta</h2>
-          <p className="mt-2 text-gray-600">
-            Ou{' '}
-            <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-              crie uma conta gratuita
-            </Link>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Entrar na sua conta
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Faça login com sua conta Google para acessar a plataforma
           </p>
         </div>
 
-        {/* Success Message */}
-        {isSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="text-green-800 font-medium">Login realizado com sucesso!</span>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {errors.general && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <span className="text-red-800">{errors.general}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`mt-1 block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="seu@email.com"
-                disabled={isLoading}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Senha
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full px-3 py-3 pr-10 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Sua senha"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+        {/* Login Form */}
+        <div className="mt-8 space-y-6">
+          {/* Message */}
+          {message && (
+            <div className={`rounded-md p-4 ${
+              message.type === 'success' 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  {message.type === 'success' ? (
+                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
                   )}
-                </button>
+                </div>
+                <div className="ml-3">
+                  <p className={`text-sm ${
+                    message.type === 'success' ? 'text-green-800' : 'text-red-800'
+                  }`}>
+                    {message.text}
+                  </p>
+                </div>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errors.password}
-                </p>
-              )}
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                disabled={isLoading}
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                Lembrar de mim
-              </label>
-            </div>
-
-            <Link 
-              to="/forgot-password" 
-              className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+          {/* Google Login Button */}
+          <div>
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Esqueci minha senha
-            </Link>
+              {loading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Conectando...
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Entrar com Google
+                </div>
+              )}
+            </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              'Entrar'
-            )}
-          </button>
-
-          {/* Demo Login Button */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Zap className="w-4 h-4 mr-2" />
-            Entrar com Conta Demo
-          </button>
-
-          {/* Divider */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Ou continue com</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button
-                type="button"
-                disabled={isLoading}
-                className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <img 
-                  src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcuNSA5LjVWMTIuNUgxMi41QzEyLjIxIDEzLjQ1IDExLjMxIDEzLjkgMTAuNSAxMy45VjE2LjZIMTMuNEMxNC44IDE1LjMgMTUuNSAxMy40IDE1LjUgMTAuOUMxNS41IDEwLjQgMTUuNSAxMCAxNS4zIDkuNUg3LjVaIiBmaWxsPSIjNDI4NUY0Ii8+CjxwYXRoIGQ9Ik00LjkgMTEuNzZDNC45IDEyLjY2IDUuMTcgMTMuNTYgNS43IDE0LjI5TDguNSAxMC4yTDQuOSA2LjA5Qy0yLjQgNy40NyAyLjQgMTQuOTYgNC45IDE3LjI2VjExLjc2WiIgZmlsbD0iI0VBNDMzNSIvPgo8cGF0aCBkPSJNMTAgNEMxMS42MyA0IDEzLjEgNC42IDEzLjcgNS4yTDE1LjUgMy40QzE0IDIgMTIuMSAxIDEwIDFDNy4xIDEgNC42IDIuNCAzLjEgNC42TDUuNyA3QzYuMjEgNS43IDggNCA5IDRaIiBmaWxsPSIjRkJCQzA0Ii8+CjxwYXRoIGQ9Ik0xMCAyMEMxMi4xIDIwIDE0IDEzIDEzLjUgMTcuNkwxMC44IDE1LjE5QzEwIDI1LjE5IDguNyAxNS4xOSA3LjMgMTZMMTcuNCAxNi4yQzE4IDEyIDIwIDIwIDE3LjQgMjBaIiBmaWxsPSIjMzRBODUzIi8+Cjwvc3ZnPgo="
-                  alt="Gov.br"
-                  className="w-5 h-5 mr-2"
-                />
-                Entrar com Gov.br
-              </button>
-            </div>
+          {/* Info */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Ao fazer login, você concorda com nossos{' '}
+              <a href="/terms" className="text-blue-600 hover:text-blue-500">
+                Termos de Uso
+              </a>{' '}
+              e{' '}
+              <a href="/privacy" className="text-blue-600 hover:text-blue-500">
+                Política de Privacidade
+              </a>
+            </p>
           </div>
-        </form>
-
-        {/* Footer */}
-        <div className="text-center text-sm text-gray-600">
-          <p>
-            Ao fazer login, você concorda com nossos{' '}
-            <Link to="/terms" className="text-blue-600 hover:text-blue-700">
-              Termos de Uso
-            </Link>{' '}
-            e{' '}
-            <Link to="/privacy" className="text-blue-600 hover:text-blue-700">
-              Política de Privacidade
-            </Link>
-          </p>
         </div>
+
+        {/* Debug Info */}
+        {import.meta.env.DEV && (
+          <div className="mt-8 p-4 bg-gray-100 rounded-md">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Debug Info (Desenvolvimento)</h3>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p>Loading: {loading ? 'Sim' : 'Não'}</p>
+              <p>Message: {message ? `${message.type}: ${message.text}` : 'Nenhuma'}</p>
+              <p>Origin: {window.location.origin}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

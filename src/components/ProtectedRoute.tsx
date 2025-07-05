@@ -1,49 +1,41 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
   requirePremium?: boolean;
 }
 
-export function ProtectedRoute({ 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requireAuth = true, 
   requirePremium = false 
-}: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+}) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   // Mostrar loading enquanto verifica autenticação
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  // Se não requer autenticação, mostrar o conteúdo
-  if (!requireAuth) {
-    return <>{children}</>;
-  }
-
-  // Se requer autenticação mas usuário não está logado
-  if (!isAuthenticated) {
+  // Se não está autenticado, redirecionar para login
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Se requer plano premium mas usuário tem plano gratuito
-  if (requirePremium && user?.plan === 'free') {
+  // Se requer premium e usuário não tem plano premium
+  if (requirePremium && user.plan !== 'premium') {
     return <Navigate to="/pricing" state={{ from: location }} replace />;
   }
 
-  // Usuário autenticado e com permissões adequadas
+  // Se passou por todas as verificações, mostrar o conteúdo
   return <>{children}</>;
-} 
+}; 
