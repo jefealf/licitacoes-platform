@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, Star, Zap } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 
 export function PricingPage() {
   const { user } = useAuth();

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Building, CreditCard, Bell, Shield, Download, Edit2, CheckCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 
 export function ProfilePage() {
   const { user } = useAuth();
