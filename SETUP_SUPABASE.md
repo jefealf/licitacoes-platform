@@ -119,3 +119,34 @@ Após a configuração, você terá:
 ---
 
 **✅ Pronto!** Seu Supabase está configurado e funcionando! 🎉 
+
+## 🎯 Problema de Redirecionamento Resolvido!
+
+### ✅ O que foi implementado:
+
+1. **Página de Callback** (`AuthCallbackPage.tsx`)
+   - Processa tokens de autenticação
+   - Redireciona automaticamente após confirmação
+   - Trata erros de autenticação
+
+2. **URLs de Redirecionamento Dinâmicas**
+   - Detecta automaticamente se está em produção ou desenvolvimento
+   - Configura URLs corretas para o Vercel
+
+3. **Melhor Tratamento de Email Não Confirmado**
+   - Mensagens claras sobre confirmação de email
+   - Verificação antes do login
+
+4. **Script SQL** (`fix-auth-redirects.sql`)
+   - Configura URLs de redirecionamento no Supabase
+   - Verifica usuários com email não confirmado
+
+### 📋 URLs que Precisam ser Configuradas:
+
+**No Supabase Dashboard → Authentication → Settings:**
+- **Site URL**: `https://SEU-PROJETO.vercel.app`
+- **Redirect URLs**: 
+  - `https://SEU-PROJETO.vercel.app/**`
+  - `http://localhost:5173/**`
+
+Agora o redirecionamento deve funcionar corretamente! 🎯 
